@@ -1,3 +1,4 @@
+
 public class Message {
 
     private int messageType;
