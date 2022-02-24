@@ -1,19 +1,21 @@
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.util.ArrayList;
 import java.util.Arrays;
-
+import java.util.HashMap;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public class Server {
         public static void main(String[] args) throws IOException {
             int currentPort = 8989;
-//            int offset = currentPort; //for offsetting array for client processes.
-//            ArrayList<DatagramSocket>
+//            HashMap<Integer, DatagramSocket> datagramSockets = new HashMap<>();
+
+//            datagramSockets.put(currentPort, datagramSocket);
             while (true) {
                 //datagramsocket: interface between app and udp
                 DatagramSocket datagramSocket = new DatagramSocket(currentPort);
-
+//                currentPort++;
                 //buffer to receive a message
                 final int buffer_length = 1000;
                 //provides connectionless service provided by UDP
