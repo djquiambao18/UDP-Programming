@@ -21,6 +21,7 @@ public class Client {
         String message = client.getMessage(); // for convenience.
         //for input validation only: requires JOIN once.
 
+        //instantiates helper objects and attributes when client asks to 'JOIN'
         if (message.equalsIgnoreCase("JOIN")) {
             client.setMessageType(0);
             GsonBuilder builder = new GsonBuilder();
@@ -35,52 +36,41 @@ public class Client {
                     8989 //Port Number of server
             );
             datagramSocket.send(packet);
+
             while (!message.equalsIgnoreCase("LEAVE") || client.getMessageType() != 2) {
 
-                /*
-                String formattedMessage = "{\"messageType\":" + client.getMessageType() + ", \"username\":\"" + client.getUsername()
-                        + "\", \"message\":\"" + client.getMessage() + "\"}";
-                */
-
-//                data = str_jsonForm.getBytes();
-
-//                DatagramPacket packet = new DatagramPacket(
-//                        data,
-//                        data.length,
-//                        InetAddress.getLocalHost(), //IP address of server
-//                        8989 //Port Number of server
-//                );
-
-//                datagramSocket.send(packet);
                 System.out.print("\nType 'POST' to send message or 'LEAVE' (without the apostrophes) to exit the chat: ");
                 message = sc.next();
                 message = message.toUpperCase();
+
+                //POST
                 if (message.equalsIgnoreCase("POST")) {
+                    //update appropriate attributes of Message object.
                     client.setMessageType(1);
                     System.out.print("\nType in your message: ");
-                    sc.nextLine();
+                    sc.nextLine(); // Required for scanner buffer, otherwise user cannot input message.
                     message = sc.nextLine();
                     client.setMessage(message);
-                } else if (message.equalsIgnoreCase("LEAVE")) {
+                }
+                //LEAVE
+                else if (message.equalsIgnoreCase("LEAVE")) {
                     System.out.println("Leaving the chat...");
+                    //update appropriate attributes of Message object.
                     client.setMessageType(2);
                     client.setMessage("LEAVE");
-//                    str_jsonForm = gson.toJson(client);
-//                    data = str_jsonForm.getBytes();
-//                    packet.setData(data);
-//                    packet.setLength(data.length);
                 } else {
                     System.out.println("Unrecognized command");
                     continue;
                 }
+                //JSONIFY->stringify client info then get Bytes to send over the network. guarantees that server receives "LEAVE" before exiting client.
                 str_jsonForm = gson.toJson(client);
                 data = str_jsonForm.getBytes();
                 packet.setData(data);
                 packet.setLength(data.length);
-                datagramSocket.send(packet);
+                datagramSocket.send(packet); //send the data over the network.
             }
         }
-        datagramSocket.close();
+        datagramSocket.close(); //close client after client asks to leave.
         System.out.println("Client - logging out");
     }
 
