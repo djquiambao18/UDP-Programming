@@ -2,14 +2,18 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 public class Server {
         public static void main(String[] args){
             int currentPort = 8989;
-            HashMap<Integer, DatagramPacket> datagramPackets = new HashMap<>();
+            //for keeping track of unique clients with "unique" userNames
+            ConcurrentMap<String, DatagramPacket> datagramPackets = new ConcurrentHashMap<>();
+            //for jsonify-ing/stringify-ing to/from Java object.
             GsonBuilder builder = new GsonBuilder();
             builder.setPrettyPrinting();
             Gson gson = builder.create();
@@ -17,7 +21,7 @@ public class Server {
             try {
                 DatagramSocket datagramSocket = new DatagramSocket(currentPort);
                 final int buffer_length = 1000;
-                while(true){
+                do {
                     //datagramsocket: interface between app and udp
 
 //                currentPort++;
@@ -27,10 +31,6 @@ public class Server {
                     DatagramPacket buffer = new DatagramPacket(new byte[buffer_length], buffer_length);
 
                     datagramSocket.receive(buffer); //throws IOException
-                    // 2nd Milestone:
-                    // if join -> client list
-                    // if post -> show it on terminal (as it is)
-                    // if leave -> remove the client from the client list
 
                     //processing later
                     //extract the data (actual message)
@@ -46,18 +46,31 @@ public class Server {
 
                     //close the socket:
                     switch (clientMsg.getMessageType()) {
-                        case 0 -> System.out.println(clientMsg.getUsername() + " with IP: " + buffer.getAddress() + " and port# " + buffer.getPort() + " has joined the chat!");
-                        case 1 -> System.out.println(clientMsg.getUsername() + " SAYS: " + clientMsg.getMessage());
+                        case 0 -> {
+//                            if(datagramPackets.containsKey(clientMsg.getUsername())){
+//                                DatagramSocket server_ds = new DatagramSocket();
+//                                byte [] server_message = new String("Username already taken. Pick a different username!").getBytes();
+//                                DatagramPacket server_pack = new DatagramPacket(new byte[buffer_length])
+//                            }
+                            System.out.println(clientMsg.getUsername() + " with IP: " + buffer.getAddress() + " and port# " + buffer.getPort() + " has joined the chat!");
+                            datagramPackets.put(clientMsg.getUsername(), buffer);
+                        }
+                        case 1 -> {
+                            System.out.println(clientMsg.getUsername() + " SAYS: " + clientMsg.getMessage());
+                        }
                         case 2 -> {
                             System.out.println(clientMsg.getUsername() + " has left the chat.");
+                            System.out.println("Client IP: " + datagramPackets.get(clientMsg.getUsername()).getAddress()
+                                    + " and Port #: "
+                                    + datagramPackets.get(clientMsg.getUsername()).getPort() + " removed.");
+                            datagramPackets.remove(clientMsg.getUsername());
                         }
-                        default -> System.out.println("Unrecognized message type!");
+                        default -> {
+                            System.out.println("Unrecognized message type!");
+                        }
                     }
 
-//                    System.out.println("Message: " + clientMsg.toString());
-                    if(clientMsg.getMessageType() == 2)
-                        break;
-                }
+                } while (!datagramPackets.isEmpty());
                 System.out.println("Server shutting down...");
                 datagramSocket.close();
             }

@@ -11,7 +11,6 @@ public class Client {
     public static void main(String[] args) throws IOException {
 
         // socket - without port number, OS chooses a random one available
-
         Message client = new Message(); //instantiate message class
         DatagramSocket datagramSocket = new DatagramSocket();
         System.out.print("Enter username: "); //prompt user to enter a username
@@ -33,7 +32,7 @@ public class Client {
                     data,
                     data.length,
                     InetAddress.getLocalHost(), //IP address of server
-                    8989 //Port Number of server)
+                    8989 //Port Number of server
             );
             datagramSocket.send(packet);
             while (!message.equalsIgnoreCase("LEAVE") || client.getMessageType() != 2) {
@@ -44,7 +43,7 @@ public class Client {
                 */
 
 //                data = str_jsonForm.getBytes();
-//
+
 //                DatagramPacket packet = new DatagramPacket(
 //                        data,
 //                        data.length,
