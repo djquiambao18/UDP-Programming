@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -20,12 +21,11 @@ public class Server {
             Message clientMsg; //for use with handling client data
             try {
                 DatagramSocket datagramSocket = new DatagramSocket(currentPort);
-                final int buffer_length = 1000;
+                final int buffer_length = 1024;
                 //do while guarantees at least run once.
                 do {
 
                     //buffer to receive a message
-
                     //provides connectionless service provided by UDP
                     DatagramPacket buffer = new DatagramPacket(new byte[buffer_length], buffer_length);
 
@@ -60,7 +60,17 @@ public class Server {
                         }
                         //POST
                         case 1 -> {
-                            System.out.println(clientMsg.getUsername() + " SAYS: " + clientMsg.getMessage());
+                            //Milestone 3: Broadcast the message to ALL clients in list
+//                            System.out.println(clientMsg.getUsername() + " SAYS: " + clientMsg.getMessage());
+                            for(Map.Entry<String, DatagramPacket> e : datagramPackets.entrySet()){
+                                DatagramSocket server_ds = new DatagramSocket();
+                                String str_broadcast = clientMsg.getUsername() + " SAYS: " + clientMsg.getMessage();
+                                System.out.println(str_broadcast);
+                                byte [] server_message = str_broadcast.getBytes();
+                                DatagramPacket s_packet = new DatagramPacket(server_message, server_message.length, e.getValue().getAddress(), e.getValue().getPort());
+                                server_ds.send(s_packet);
+
+                            }
                         }
                         //LEAVE
                         case 2 -> {
@@ -77,6 +87,7 @@ public class Server {
 
                 } while (!datagramPackets.isEmpty()); //ends loop if client list is empty. shutting down the server afterwards.
                 System.out.println("Server shutting down...");
+
                 datagramSocket.close();
             }
             catch(Exception e){
